@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management - Admin, Cashier, Manager
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(CASHIER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales Sale[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  CASHIER
+  MANAGER
+}
+
+// Categories for Products
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+// Products & Inventory
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  categoryId Int
+  price      Decimal  @db.Decimal(10, 2)
+  costPrice  Decimal  @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  barcode    String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  saleItems  SaleItem[]
+  stockLogs  StockLog[]
+
+  @@map("products")
+}
+
+// Customers
+model Customer {
+  id            Int      @id @default(autoincrement())
+  name          String
+  phone         String   @unique
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sales Sale[]
+
+  @@map("customers")
+}
+
+// Sales (Main Invoice)
+model Sale {
+  id            Int           @id @default(autoincrement())
+  invoiceNumber String        @unique
+  customerId    Int?
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  discount      Decimal       @default(0) @db.Decimal(10, 2)
+  paidAmount    Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  userId        Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user      User       @relation(fields: [userId], references: [id])
+  saleItems SaleItem[]
+
+  @@map("sales")
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE
+}
+
+// Sale Items (Items in each invoice)
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  saleId    Int
+  productId Int
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+// Stock Logs (Inventory Movement Tracking)
+model StockLog {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  change    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("stock_logs")
+}

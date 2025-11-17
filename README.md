@@ -78,7 +78,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Ravi-Wijerathne/pos.git
 cd pos
 ```
 

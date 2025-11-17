@@ -152,7 +152,7 @@ export default function POSPage() {
         const data = await response.json();
         
         // Prepare receipt data
-        const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
         const receiptInfo = {
           invoiceNumber: data.invoiceNumber,
           date: new Date().toLocaleString(),
@@ -161,11 +161,11 @@ export default function POSPage() {
           items: cart.map((item) => ({
             name: item.name,
             quantity: item.quantity,
-            price: item.price,
-            subtotal: item.subtotal,
+            price: Number(item.price),
+            subtotal: Number(item.subtotal),
           })),
           subtotal: subtotal,
-          discount: discount,
+          discount: Number(discount),
           total: calculateTotal(),
           paymentMethod: paymentMethod,
         };

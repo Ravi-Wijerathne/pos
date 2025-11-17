@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { ReceiptPreview } from "@/components/receipt-preview";
 
 interface Product {
   id: number;
@@ -29,6 +30,8 @@ export default function POSPage() {
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD" | "MOBILE">("CASH");
   const [processing, setProcessing] = useState(false);
+  const [receiptData, setReceiptData] = useState<any>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -147,7 +150,30 @@ export default function POSPage() {
 
       if (response.ok) {
         const data = await response.json();
-        alert(`Sale completed! Invoice: ${data.invoiceNumber}`);
+        
+        // Prepare receipt data
+        const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        const receiptInfo = {
+          invoiceNumber: data.invoiceNumber,
+          date: new Date().toLocaleString(),
+          cashier: session?.user?.name || "Cashier",
+          customer: undefined,
+          items: cart.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.subtotal,
+          })),
+          subtotal: subtotal,
+          discount: discount,
+          total: calculateTotal(),
+          paymentMethod: paymentMethod,
+        };
+        
+        setReceiptData(receiptInfo);
+        setShowReceipt(true);
+        
+        // Clear cart
         setCart([]);
         setDiscount(0);
         fetchProducts(); // Refresh stock
@@ -297,6 +323,15 @@ export default function POSPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Receipt Preview Dialog */}
+      {receiptData && (
+        <ReceiptPreview
+          open={showReceipt}
+          onOpenChange={setShowReceipt}
+          data={receiptData}
+        />
+      )}
     </div>
   );
 }

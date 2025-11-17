@@ -10,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ReceiptPreview } from "@/components/receipt-preview";
 
 interface Sale {
   id: number;
@@ -32,6 +34,8 @@ export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSale, setExpandedSale] = useState<number | null>(null);
+  const [receiptData, setReceiptData] = useState<any>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
     fetchSales();
@@ -58,6 +62,33 @@ export default function SalesPage() {
     return <Badge className={colors[method] || ""}>{method}</Badge>;
   };
 
+  const handleViewReceipt = (sale: Sale) => {
+    const subtotal = sale.saleItems.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity,
+      0
+    );
+
+    const receiptInfo = {
+      invoiceNumber: sale.invoiceNumber,
+      date: new Date(sale.createdAt).toLocaleString(),
+      cashier: sale.user.name,
+      customer: sale.customer?.name,
+      items: sale.saleItems.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: Number(item.price),
+        subtotal: item.quantity * Number(item.price),
+      })),
+      subtotal: subtotal,
+      discount: Number(sale.discount),
+      total: Number(sale.totalAmount),
+      paymentMethod: sale.paymentMethod,
+    };
+
+    setReceiptData(receiptInfo);
+    setShowReceipt(true);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -76,18 +107,19 @@ export default function SalesPage() {
               <TableHead>Payment</TableHead>
               <TableHead className="text-right">Discount</TableHead>
               <TableHead className="text-right">Total</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : sales.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   No sales found
                 </TableCell>
               </TableRow>
@@ -122,10 +154,22 @@ export default function SalesPage() {
                     <TableCell className="text-right font-bold">
                       LKR {Number(sale.totalAmount).toFixed(2)}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewReceipt(sale);
+                        }}
+                      >
+                        View Receipt
+                      </Button>
+                    </TableCell>
                   </TableRow>
                   {expandedSale === sale.id && (
                     <TableRow>
-                      <TableCell colSpan={7} className="bg-gray-50">
+                      <TableCell colSpan={8} className="bg-gray-50">
                         <div className="space-y-2 p-4">
                           <h4 className="font-semibold">Items:</h4>
                           <div className="space-y-1">
@@ -153,6 +197,15 @@ export default function SalesPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Receipt Preview Dialog */}
+      {receiptData && (
+        <ReceiptPreview
+          open={showReceipt}
+          onOpenChange={setShowReceipt}
+          data={receiptData}
+        />
+      )}
     </div>
   );
 }

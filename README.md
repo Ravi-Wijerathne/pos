@@ -29,6 +29,8 @@ A modern, full-stack Point of Sale (POS) system built with Next.js 15, TypeScrip
 - **Sales Management**
   - Complete sales history
   - Invoice generation and tracking
+  - PDF receipt generation with download
+  - Receipt preview and printing
   - Detailed transaction records
   - Sales by cashier tracking
 
@@ -178,7 +180,8 @@ After seeding, you can login with:
 2. **POS Screen** - Navigate to POS to start selling
 3. **Add Products** - Search or scan barcodes to add items to cart
 4. **Checkout** - Select payment method and complete sale
-5. **View Sales** - Check your transaction history
+5. **Receipt** - Preview, print, or download PDF receipt after checkout
+6. **View Sales** - Check your transaction history and reprint receipts
 
 ### For Managers
 
@@ -277,7 +280,7 @@ Deploy on platforms like:
 
 ## 📱 Future Enhancements
 
-- [ ] PDF Receipt Generation
+- [x] PDF Receipt Generation ✅
 - [ ] Thermal Printer Support (ESC/POS)
 - [ ] Customer Loyalty Points Implementation
 - [ ] Multi-branch Support

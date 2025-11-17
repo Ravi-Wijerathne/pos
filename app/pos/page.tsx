@@ -67,7 +67,7 @@ export default function POSPage() {
             ? {
                 ...item,
                 quantity: item.quantity + 1,
-                subtotal: (item.quantity + 1) * item.price,
+                subtotal: (item.quantity + 1) * Number(item.price),
               }
             : item
         )
@@ -82,7 +82,7 @@ export default function POSPage() {
         {
           ...product,
           quantity: 1,
-          subtotal: product.price,
+          subtotal: Number(product.price),
         },
       ]);
     }
@@ -112,7 +112,7 @@ export default function POSPage() {
           ? {
               ...item,
               quantity,
-              subtotal: quantity * item.price,
+              subtotal: quantity * Number(item.price),
             }
           : item
       )
@@ -120,8 +120,8 @@ export default function POSPage() {
   };
 
   const calculateTotal = () => {
-    const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-    return subtotal - discount;
+    const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
+    return subtotal - Number(discount);
   };
 
   const handleCheckout = async () => {
@@ -152,7 +152,7 @@ export default function POSPage() {
         const data = await response.json();
         
         // Prepare receipt data
-        const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
         const receiptInfo = {
           invoiceNumber: data.invoiceNumber,
           date: new Date().toLocaleString(),
@@ -161,11 +161,11 @@ export default function POSPage() {
           items: cart.map((item) => ({
             name: item.name,
             quantity: item.quantity,
-            price: item.price,
-            subtotal: item.subtotal,
+            price: Number(item.price),
+            subtotal: Number(item.subtotal),
           })),
           subtotal: subtotal,
-          discount: discount,
+          discount: Number(discount),
           total: calculateTotal(),
           paymentMethod: paymentMethod,
         };

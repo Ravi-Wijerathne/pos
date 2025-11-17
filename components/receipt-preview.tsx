@@ -96,8 +96,8 @@ export function ReceiptPreview({ open, onOpenChange, data }: ReceiptPreviewProps
                 <span className="flex-1">{item.name}</span>
                 <span className="flex gap-8">
                   <span className="w-8 text-center">{item.quantity}</span>
-                  <span className="w-16 text-right">{item.price.toFixed(2)}</span>
-                  <span className="w-16 text-right">{item.subtotal.toFixed(2)}</span>
+                  <span className="w-16 text-right">{Number(item.price).toFixed(2)}</span>
+                  <span className="w-16 text-right">{Number(item.subtotal).toFixed(2)}</span>
                 </span>
               </div>
             ))}
@@ -107,17 +107,17 @@ export function ReceiptPreview({ open, onOpenChange, data }: ReceiptPreviewProps
           <div className="border-t pt-2 space-y-1 text-sm">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>LKR {data.subtotal.toFixed(2)}</span>
+              <span>LKR {Number(data.subtotal).toFixed(2)}</span>
             </div>
             {data.discount > 0 && (
               <div className="flex justify-between text-red-600">
                 <span>Discount:</span>
-                <span>-LKR {data.discount.toFixed(2)}</span>
+                <span>-LKR {Number(data.discount).toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-lg border-t pt-1">
               <span>TOTAL:</span>
-              <span>LKR {data.total.toFixed(2)}</span>
+              <span>LKR {Number(data.total).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span>Payment Method:</span>

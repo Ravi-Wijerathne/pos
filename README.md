@@ -77,22 +77,58 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Getting Started
 
-### 1. Clone the Repository
+### Quick Start (Recommended) 🎯
+
+The easiest way to start the application is using our **automated startup script**:
+
+```bash
+# Clone the repository
+git clone https://github.com/Ravi-Wijerathne/pos.git
+cd pos
+
+# Make the script executable (first time only)
+chmod +x start-app.sh
+
+# Run the automated startup script
+./start-app.sh
+```
+
+**That's it!** The script will automatically:
+- ✅ Check all system requirements (Node.js, npm, MySQL)
+- ✅ Install/update dependencies if needed
+- ✅ Create `.env` file with secure defaults
+- ✅ Connect to MySQL and create database automatically
+- ✅ Set up database schema (Prisma migration)
+- ✅ Offer to seed with sample data
+- ✅ Start the development server
+- ✅ Open the app in your browser automatically
+
+For production mode:
+```bash
+./start-app.sh --production
+```
+---
+
+### Manual Setup (Alternative)
+
+If you prefer to set up manually:
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Ravi-Wijerathne/pos.git
 cd pos
 ```
 
-### 2. Install Dependencies
+#### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Setup Environment Variables
+#### 3. Setup Environment Variables
 
-Create a `.env` file in the root directory and update with your credentials:
+Create a `.env` file in the root directory:
 
 ```env
 # Database - Update with your MySQL credentials
@@ -103,31 +139,27 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-change-this-in-production-min-32-chars
 ```
 
-**Important:** Change the `NEXTAUTH_SECRET` to a secure random string in production. Generate one using:
+Generate a secure `NEXTAUTH_SECRET`:
 
 ```bash
 openssl rand -base64 32
 ```
 
-### 4. Setup MySQL Database
+#### 4. Setup MySQL Database
 
-Create the database in MySQL:
+Create the database:
 
 ```sql
 CREATE DATABASE pos_system;
 ```
 
-### 5. Push Database Schema
+#### 5. Push Database Schema
 
 ```bash
 npm run db:push
 ```
 
-This will create all the necessary tables in your database.
-
-### 6. Seed the Database (Optional)
-
-Populate the database with sample data:
+#### 6. Seed the Database (Optional)
 
 ```bash
 npm run db:seed
@@ -136,11 +168,9 @@ npm run db:seed
 This creates:
 - **Admin user:** `admin@pos.com` / `admin123`
 - **Cashier user:** `cashier@pos.com` / `cashier123`
-- Sample categories
-- Sample products
-- Sample customers
+- Sample categories, products, and customers
 
-### 7. Run the Development Server
+#### 7. Run the Development Server
 
 ```bash
 npm run dev

@@ -15,7 +15,7 @@ const navigation = [
   { name: "Users", href: "/users", adminOnly: true },
 ];
 
-export default function DashboardLayout({
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;

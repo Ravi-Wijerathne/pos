@@ -79,7 +79,23 @@ Before you begin, ensure you have the following installed:
 
 ### Quick Start (Recommended) 🎯
 
-The easiest way to start the application is using our **automated startup script**:
+The easiest way to start the application is using our **automated startup scripts**:
+
+#### Option 1: Python Script (Cross-Platform - Windows/Linux/macOS) 🐍
+
+```bash
+# Clone the repository
+git clone https://github.com/Ravi-Wijerathne/pos.git
+cd pos
+
+# Run the Python startup script
+python start-app.py
+
+# For production mode
+python start-app.py --production
+```
+
+#### Option 2: Bash Script (Linux/macOS) 🐧
 
 ```bash
 # Clone the repository
@@ -91,9 +107,12 @@ chmod +x start-app.sh
 
 # Run the automated startup script
 ./start-app.sh
+
+# For production mode
+./start-app.sh --production
 ```
 
-**That's it!** The script will automatically:
+**That's it!** Both scripts will automatically:
 - ✅ Check all system requirements (Node.js, npm, MySQL)
 - ✅ Install/update dependencies if needed
 - ✅ Create `.env` file with secure defaults
@@ -103,10 +122,10 @@ chmod +x start-app.sh
 - ✅ Start the development server
 - ✅ Open the app in your browser automatically
 
-For production mode:
-```bash
-./start-app.sh --production
-```
+| Script | Platform | Requirements |
+|--------|----------|--------------|
+| `start-app.py` | Windows, Linux, macOS | Python 3.6+ |
+| `start-app.sh` | Linux, macOS | Bash shell |
 ---
 
 ### Manual Setup (Alternative)

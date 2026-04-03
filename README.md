@@ -1,7 +1,7 @@
 # POS System
 
-[![CI](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml)
-[![CD](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml)
+[![CI](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush)
+[![CD](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml/badge.svg?branch=master&event=workflow_run)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml?query=branch%3Amaster+event%3Aworkflow_run)
 
 Production-ready Point of Sale system with a cloud-first architecture:
 - Frontend: Next.js app deployed on Vercel

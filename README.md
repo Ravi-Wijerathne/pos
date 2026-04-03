@@ -1,6 +1,7 @@
 # POS System
 
 [![CI](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml)
+[![CD](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/cd.yml)
 
 Production-ready Point of Sale system with a cloud-first architecture:
 - Frontend: Next.js app deployed on Vercel
@@ -111,6 +112,24 @@ npx vercel --prod
 ```
 
 Set all required production environment variables in Vercel before deploying.
+
+## GitHub Actions CI/CD
+
+- CI workflow: `.github/workflows/ci.yml`
+	- Runs on pull requests and pushes to `master`, `main`, and `develop`
+	- Runs lint, production build, unit tests, and Playwright smoke tests
+- CD workflow: `.github/workflows/cd.yml`
+	- Runs automatically after CI succeeds on `master`
+	- Can also be run manually using `workflow_dispatch`
+	- Deploys the frontend to Vercel production
+
+Required GitHub repository secrets for CD:
+
+```env
+VERCEL_TOKEN=
+VERCEL_ORG_ID=
+VERCEL_PROJECT_ID=
+```
 
 ## Scripts
 

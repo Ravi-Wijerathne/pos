@@ -112,14 +112,16 @@ Deno.serve(async (request) => {
 
     try {
       const rows = await sql`
-        insert into products (name, "categoryId", price, "costPrice", stock, barcode)
+        insert into products (name, "categoryId", price, "costPrice", stock, barcode, "createdAt", "updatedAt")
         values (
           ${payload.name},
           ${Number(payload.categoryId)},
           ${Number(payload.price)},
           ${Number(payload.costPrice)},
           ${Number(payload.stock)},
-          ${payload.barcode}
+          ${payload.barcode},
+          now(),
+          now()
         )
         returning id
       `;

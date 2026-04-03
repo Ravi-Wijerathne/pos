@@ -27,6 +27,7 @@ interface ProductFormProps {
 export function ProductForm({ categories, onSuccess }: ProductFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     categoryId: "",
@@ -38,16 +39,33 @@ export function ProductForm({ categories, onSuccess }: ProductFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    const categoryId = Number(formData.categoryId);
+    const price = Number(formData.price);
+    const costPrice = Number(formData.costPrice);
+    const stock = Number(formData.stock);
+
+    if (
+      !Number.isFinite(categoryId) ||
+      !Number.isFinite(price) ||
+      !Number.isFinite(costPrice) ||
+      !Number.isFinite(stock)
+    ) {
+      setError("Please enter valid numeric values.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await apiPost("/api/products", {
-        ...formData,
-        categoryId: parseInt(formData.categoryId),
-        price: parseFloat(formData.price),
-        costPrice: parseFloat(formData.costPrice),
-        stock: parseInt(formData.stock),
-        barcode: formData.barcode || null,
+        name: formData.name.trim(),
+        categoryId,
+        price,
+        costPrice,
+        stock,
+        barcode: formData.barcode.trim() || null,
       });
 
       setOpen(false);
@@ -62,6 +80,7 @@ export function ProductForm({ categories, onSuccess }: ProductFormProps) {
       onSuccess?.();
     } catch (error) {
       console.error("Error creating product:", error);
+      setError(error instanceof Error ? error.message : "Failed to create product");
     } finally {
       setLoading(false);
     }
@@ -80,6 +99,11 @@ export function ProductForm({ categories, onSuccess }: ProductFormProps) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error ? (
+            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>

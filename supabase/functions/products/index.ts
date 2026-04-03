@@ -74,13 +74,40 @@ Deno.serve(async (request) => {
 
   if (request.method === "POST") {
     const body = await request.json().catch(() => ({}));
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const categoryId = Number(body.categoryId);
+    const price = Number(body.price);
+    const costPrice = Number(body.costPrice);
+    const stock = Number(body.stock);
+    const barcode = typeof body.barcode === "string" ? body.barcode.trim() : null;
+
+    if (!name) {
+      return withCors({ error: "Product name is required" }, 400);
+    }
+
+    if (!Number.isFinite(categoryId)) {
+      return withCors({ error: "Valid category is required" }, 400);
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      return withCors({ error: "Valid selling price is required" }, 400);
+    }
+
+    if (!Number.isFinite(costPrice) || costPrice < 0) {
+      return withCors({ error: "Valid cost price is required" }, 400);
+    }
+
+    if (!Number.isInteger(stock) || stock < 0) {
+      return withCors({ error: "Valid stock quantity is required" }, 400);
+    }
+
     const payload = {
-      name: body.name,
-      categoryId: body.categoryId,
-      price: body.price,
-      costPrice: body.costPrice,
-      stock: body.stock,
-      barcode: body.barcode ?? null,
+      name,
+      categoryId,
+      price,
+      costPrice,
+      stock,
+      barcode: barcode || null,
     };
 
     try {
@@ -133,7 +160,13 @@ Deno.serve(async (request) => {
 
       return withCors(data[0], 201);
     } catch (error) {
-      return withCors({ error: error instanceof Error ? error.message : "Failed to create product" }, 500);
+      const message = error instanceof Error ? error.message : "Failed to create product";
+
+      if (message.toLowerCase().includes("duplicate key") && message.toLowerCase().includes("barcode")) {
+        return withCors({ error: "Barcode already exists" }, 409);
+      }
+
+      return withCors({ error: message }, 500);
     }
   }
 

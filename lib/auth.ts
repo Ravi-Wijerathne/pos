@@ -1,75 +1,67 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
-type Credentials = {
-  email?: string;
-  password?: string;
+export type AppRole = "ADMIN" | "CASHIER" | "MANAGER";
+
+export type AppUser = {
+  authId: string;
+  id: string;
+  email: string;
+  name: string;
+  role: AppRole;
 };
 
-export async function authorizeCredentials(credentials?: Credentials) {
-  if (!credentials?.email || !credentials?.password) {
-    return null;
+function normalizeRole(role: unknown): AppRole {
+  if (role === "ADMIN" || role === "CASHIER" || role === "MANAGER") {
+    return role;
   }
 
+  return "CASHIER";
+}
+
+async function getDatabaseUserByEmail(email: string): Promise<AppUser | null> {
   const user = await prisma.user.findUnique({
-    where: {
-      email: credentials.email,
-    },
+    where: { email },
+    select: { id: true, email: true, name: true, role: true },
   });
 
   if (!user) {
     return null;
   }
 
-  const isPasswordValid = await compare(credentials.password, user.password);
-
-  if (!isPasswordValid) {
-    return null;
-  }
-
   return {
+    authId: user.email,
     id: user.id.toString(),
     email: user.email,
     name: user.name,
-    role: user.role,
+    role: normalizeRole(user.role),
   };
 }
 
-export const authOptions: NextAuthOptions = {
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        return authorizeCredentials(credentials);
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.role = token.role as string;
-        session.user.id = token.id as string;
-      }
-      return session;
-    },
-  },
-};
+export async function getCurrentUser(): Promise<AppUser | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user?.email) {
+    return null;
+  }
+
+  const databaseUser = await getDatabaseUserByEmail(data.user.email);
+
+  if (databaseUser) {
+    return {
+      ...databaseUser,
+      authId: data.user.id,
+    };
+  }
+
+  return null;
+}
+
+export async function requireCurrentUser() {
+  return getCurrentUser();
+}
+
+export function isAdmin(user: AppUser | null | undefined) {
+  return user?.role === "ADMIN";
+}

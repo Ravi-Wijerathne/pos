@@ -1,10 +1,11 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard" },
@@ -20,10 +21,25 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user, loading, signOut } = useAuth();
 
-  const isAdmin = session?.user?.role === "ADMIN";
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, router, user]);
+
+  const isAdmin = user?.role === "ADMIN";
+
+  if (loading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -55,12 +71,12 @@ export default function ProtectedLayout({
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm">
-              <p className="font-medium">{session?.user?.name}</p>
-              <p className="text-gray-500">{session?.user?.role}</p>
+              <p className="font-medium">{user?.name}</p>
+              <p className="text-gray-500">{user?.role}</p>
             </div>
             <Button
               variant="outline"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => void signOut().then(() => router.replace("/login"))}
             >
               Sign Out
             </Button>

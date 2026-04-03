@@ -1,0 +1,16 @@
+project_id = "your-supabase-project-id"
+
+[functions.categories]
+verify_jwt = true
+
+[functions.customers]
+verify_jwt = true
+
+[functions.products]
+verify_jwt = true
+
+[functions.sales]
+verify_jwt = true
+
+[functions.users]
+verify_jwt = true

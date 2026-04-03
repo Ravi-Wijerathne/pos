@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ProductForm } from "@/components/product-form";
 import {
   Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { apiGet } from "@/lib/api-client";
 
 interface Product {
   id: number;
@@ -37,32 +37,30 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const response = await fetch(`/api/products?search=${search}`);
-      const data = await response.json();
+      const data = await apiGet<Product[]>(`/api/products?search=${search}`);
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
-      const response = await fetch("/api/categories");
-      const data = await response.json();
+      const data = await apiGet<Category[]>("/api/categories");
       setCategories(data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, []);
+  }, [fetchProducts, fetchCategories]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,7 +68,7 @@ export default function ProductsPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [fetchProducts]);
 
   const getStockBadge = (stock: number) => {
     if (stock === 0) {

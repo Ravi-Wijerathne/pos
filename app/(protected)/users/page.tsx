@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/components/auth-provider";
+import { apiGet, apiPost } from "@/lib/api-client";
 
 interface User {
   id: number;
@@ -33,7 +34,7 @@ interface User {
 }
 
 export default function UsersPage() {
-  const { data: session } = useSession();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,17 +47,20 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    if (session && session.user.role !== "ADMIN") {
+    if (authLoading) {
+      return;
+    }
+
+    if (user?.role !== "ADMIN") {
       router.push("/dashboard");
     } else {
       fetchUsers();
     }
-  }, [session]);
+  }, [authLoading, router, user]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/users");
-      const data = await response.json();
+      const data = await apiGet<User[]>("/api/users");
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -69,20 +73,10 @@ export default function UsersPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setOpen(false);
-        setFormData({ name: "", email: "", password: "", role: "CASHIER" });
-        fetchUsers();
-      } else {
-        const data = await response.json();
-        alert(data.error || "Failed to create user");
-      }
+      await apiPost("/api/users", formData);
+      setOpen(false);
+      setFormData({ name: "", email: "", password: "", role: "CASHIER" });
+      fetchUsers();
     } catch (error) {
       console.error("Error creating user:", error);
     }
@@ -97,7 +91,7 @@ export default function UsersPage() {
     return <Badge className={colors[role] || ""}>{role}</Badge>;
   };
 
-  if (session?.user.role !== "ADMIN") {
+  if (authLoading || user?.role !== "ADMIN") {
     return null;
   }
 

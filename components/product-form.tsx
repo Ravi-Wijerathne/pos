@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { apiPost } from "@/lib/api-client";
 
 interface Category {
   id: number;
@@ -40,31 +41,25 @@ export function ProductForm({ categories, onSuccess }: ProductFormProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          categoryId: parseInt(formData.categoryId),
-          price: parseFloat(formData.price),
-          costPrice: parseFloat(formData.costPrice),
-          stock: parseInt(formData.stock),
-          barcode: formData.barcode || null,
-        }),
+      await apiPost("/api/products", {
+        ...formData,
+        categoryId: parseInt(formData.categoryId),
+        price: parseFloat(formData.price),
+        costPrice: parseFloat(formData.costPrice),
+        stock: parseInt(formData.stock),
+        barcode: formData.barcode || null,
       });
 
-      if (response.ok) {
-        setOpen(false);
-        setFormData({
-          name: "",
-          categoryId: "",
-          price: "",
-          costPrice: "",
-          stock: "",
-          barcode: "",
-        });
-        onSuccess?.();
-      }
+      setOpen(false);
+      setFormData({
+        name: "",
+        categoryId: "",
+        price: "",
+        costPrice: "",
+        stock: "",
+        barcode: "",
+      });
+      onSuccess?.();
     } catch (error) {
       console.error("Error creating product:", error);
     } finally {

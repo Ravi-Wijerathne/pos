@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiGet, apiPost } from "@/lib/api-client";
 
 interface Customer {
   id: number;
@@ -37,8 +38,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch("/api/customers");
-      const data = await response.json();
+      const data = await apiGet<Customer[]>("/api/customers");
       setCustomers(data);
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -55,20 +55,10 @@ export default function CustomersPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setOpen(false);
-        setFormData({ name: "", phone: "" });
-        fetchCustomers();
-      } else {
-        const data = await response.json();
-        alert(data.error || "Failed to create customer");
-      }
+      await apiPost("/api/customers", formData);
+      setOpen(false);
+      setFormData({ name: "", phone: "" });
+      fetchCustomers();
     } catch (error) {
       console.error("Error creating customer:", error);
     }

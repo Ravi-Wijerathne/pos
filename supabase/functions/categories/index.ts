@@ -37,8 +37,8 @@ Deno.serve(async (request) => {
 
     try {
       const rows = await sql`
-        insert into categories (name)
-        values (${name})
+        insert into categories (name, "createdAt", "updatedAt")
+        values (${name}, now(), now())
         returning id, name, "createdAt", "updatedAt"
       `;
       return withCors(rows[0], 201);

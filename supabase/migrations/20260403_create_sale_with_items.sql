@@ -26,7 +26,9 @@ begin
     "discount",
     "paidAmount",
     "paymentMethod",
-    "userId"
+    "userId",
+    "createdAt",
+    "updatedAt"
   ) values (
     v_invoice_number,
     p_customer_id,
@@ -34,7 +36,9 @@ begin
     coalesce(p_discount, 0),
     p_total_amount,
     p_payment_method::"PaymentMethod",
-    p_user_id
+    p_user_id,
+    now(),
+    now()
   ) returning id into v_sale_id;
 
   for v_item in select * from jsonb_array_elements(p_items)
@@ -77,11 +81,13 @@ begin
     insert into stock_logs (
       "productId",
       change,
-      reason
+      reason,
+      "createdAt"
     ) values (
       v_product_id,
       -v_quantity,
-      'Sale: ' || v_invoice_number
+      'Sale: ' || v_invoice_number,
+      now()
     );
   end loop;
 

@@ -138,7 +138,9 @@ Deno.serve(async (request) => {
             discount,
             "paidAmount",
             "paymentMethod",
-            "userId"
+            "userId",
+            "createdAt",
+            "updatedAt"
           )
           values (
             ${invoiceNumber},
@@ -147,7 +149,9 @@ Deno.serve(async (request) => {
             ${discount},
             ${totalAmount},
             ${paymentMethod}::"PaymentMethod",
-            ${authResult.appUser.id}
+            ${authResult.appUser.id},
+            now(),
+            now()
           )
           returning id, "invoiceNumber"
         `;
@@ -192,8 +196,8 @@ Deno.serve(async (request) => {
           `;
 
           await tx`
-            insert into stock_logs ("productId", change, reason)
-            values (${item.productId}, ${-item.quantity}, ${`Sale ${sale.invoiceNumber}`})
+            insert into stock_logs ("productId", change, reason, "createdAt")
+            values (${item.productId}, ${-item.quantity}, ${`Sale ${sale.invoiceNumber}`}, now())
           `;
         }
 

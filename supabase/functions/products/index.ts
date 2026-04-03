@@ -133,8 +133,8 @@ Deno.serve(async (request) => {
       }
 
       await sql`
-        insert into stock_logs ("productId", change, reason)
-        values (${productId}, ${Number(payload.stock ?? 0)}, 'Initial stock')
+        insert into stock_logs ("productId", change, reason, "createdAt")
+        values (${productId}, ${Number(payload.stock ?? 0)}, 'Initial stock', now())
       `;
 
       const data = await sql`
@@ -209,8 +209,8 @@ Deno.serve(async (request) => {
 
       if (previousStock !== nextStock) {
         await sql`
-          insert into stock_logs ("productId", change, reason)
-          values (${id}, ${nextStock - previousStock}, 'Manual adjustment')
+          insert into stock_logs ("productId", change, reason, "createdAt")
+          values (${id}, ${nextStock - previousStock}, 'Manual adjustment', now())
         `;
       }
 

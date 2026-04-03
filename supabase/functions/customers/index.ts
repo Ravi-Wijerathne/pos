@@ -38,15 +38,15 @@ Deno.serve(async (request) => {
 
     try {
       const rows = await sql`
-        insert into customers (name, phone, "loyaltyPoints")
-        values (${name}, ${phone}, 0)
+        insert into customers (name, phone, "loyaltyPoints", "createdAt", "updatedAt")
+        values (${name}, ${phone}, 0, now(), now())
         returning id, name, phone, "loyaltyPoints", "createdAt", "updatedAt"
       `;
       return withCors(rows[0], 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create customer";
       const isUnique = message.includes("duplicate key") || message.includes("customers_phone_key");
-      return withCors({ error: isUnique ? "Phone number already exists" : message }, isUnique ? 400 : 500);
+      return withCors({ error: isUnique ? "Phone number already exists" : message }, isUnique ? 409 : 500);
     }
   }
 

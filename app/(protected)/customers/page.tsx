@@ -34,6 +34,8 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", phone: "" });
 
   const fetchCustomers = async () => {
@@ -53,14 +55,24 @@ export default function CustomersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+    setSubmitting(true);
 
     try {
-      await apiPost("/api/customers", formData);
+      await apiPost("/api/customers", {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+      });
       setOpen(false);
       setFormData({ name: "", phone: "" });
       fetchCustomers();
     } catch (error) {
       console.error("Error creating customer:", error);
+      setFormError(
+        error instanceof Error ? error.message : "Failed to create customer",
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -83,6 +95,11 @@ export default function CustomersPage() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {formError ? (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {formError}
+                </p>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -110,10 +127,13 @@ export default function CustomersPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
+                  disabled={submitting}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Add Customer</Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Adding..." : "Add Customer"}
+                </Button>
               </div>
             </form>
           </DialogContent>

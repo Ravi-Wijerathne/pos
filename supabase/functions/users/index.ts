@@ -59,8 +59,8 @@ Deno.serve(async (request) => {
 
     try {
       const rows = await sql`
-        insert into users (name, email, role, password)
-        values (${name}, ${email}, ${role}::"UserRole", 'SUPABASE_MANAGED')
+        insert into users (name, email, role, password, "createdAt", "updatedAt")
+        values (${name}, ${email}, ${role}::"UserRole", 'SUPABASE_MANAGED', now(), now())
         on conflict (email)
         do update set
           name = excluded.name,

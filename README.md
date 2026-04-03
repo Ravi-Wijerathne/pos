@@ -2,117 +2,144 @@
 
 [![CI](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml)
 
-Modern Point of Sale system built with Next.js, TypeScript, Prisma, and MySQL.
+Production-ready Point of Sale system with a cloud-first architecture:
+- Frontend: Next.js app deployed on Vercel
+- Auth + API gateway: Supabase Auth + Supabase Edge Functions
+- Database: Neon PostgreSQL (source of truth)
 
-## Features
+## Current Architecture
 
-- Authentication & role-based access (Admin, Manager, Cashier)
-- Product & inventory management with barcode support
-- POS billing interface with multiple payment methods
-- Sales tracking & PDF receipt generation
-- Customer & user management
-- Dashboard with sales analytics
+- `app/` and `components/`: Next.js 16 frontend
+- `proxy.ts`: route protection for authenticated areas
+- `lib/supabase/*`: browser/server/admin Supabase clients
+- `lib/api-client.ts`: frontend API wrapper to Supabase Edge Functions
+- `supabase/functions/*`: backend endpoints for categories/customers/products/sales/users
+- `prisma/schema.prisma`: PostgreSQL schema for Neon
+
+## Core Features
+
+- Role-based access (Admin, Manager, Cashier)
+- Product and inventory management with stock logs
+- POS checkout with multiple payment methods
+- Sales history and dashboard analytics
+- Customer and user management
 
 ## Tech Stack
 
-Next.js 15, React 19, TypeScript, Prisma ORM, MySQL, NextAuth.js, Tailwind CSS, shadcn/ui
-
+- Next.js 16, React 19, TypeScript
+- Supabase Auth, Supabase Edge Functions
+- Neon PostgreSQL
+- Prisma ORM (schema + migrations/seed)
+- Tailwind CSS + shadcn/ui
 
 ## Prerequisites
 
-- Node.js 18+
-- MySQL 8.0+
-- npm or yarn
+- Node.js 20+
+- npm
+- Supabase project
+- Neon project
+- Vercel account
 
-## Quick Setup
+## Environment Variables
 
-### Automated (Recommended)
+Use `.env.example` and `.env.production.example` as templates.
 
-```bash
-# Clone repository
-git clone https://github.com/Ravi-Wijerathne/pos.git
-cd pos
+Required variables:
 
-# Run automated script
-python start-app.py
+```env
+# Frontend/runtime
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_FUNCTIONS_URL=
+
+# Server/runtime
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Database (Neon)
+DATABASE_URL=
+NEON_DATABASE_URL=
+
+# App URL + auth secret
+NEXTAUTH_URL=
+NEXTAUTH_SECRET=
 ```
 
-The script will:
-- Install dependencies
-- Create `.env` file
-- Setup database
-- Seed sample data
-- Start the server
+## Local Setup
 
-### Manual Setup
+1. Install dependencies
 
-1. Clone and install dependencies:
 ```bash
-git clone https://github.com/Ravi-Wijerathne/pos.git
-cd pos
 npm install
 ```
 
-2. Create `.env` file:
-```env
-DATABASE_URL="mysql://root:password@localhost:3306/pos_system"
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key-min-32-chars
-```
+2. Configure `.env` from `.env.example`
 
-3. Setup database:
+3. Push schema and seed Neon DB
+
 ```bash
-# Create MySQL database
-mysql -u root -p -e "CREATE DATABASE pos_system;"
-
-# Push schema
 npm run db:push
-
-# Seed data (optional)
 npm run db:seed
 ```
 
-4. Start development server:
+4. Start Next.js app
+
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+5. (Optional) Run Supabase functions locally
 
-## Default Login
+```bash
+npm run supabase:functions:serve
+```
 
-**Admin:** admin@pos.com / admin123  
-**Cashier:** cashier@pos.com / cashier123
+## Supabase Functions Deployment
+
+```bash
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npx supabase secrets set NEON_DATABASE_URL="<neon-url>" DATABASE_URL="<neon-url>"
+npm run supabase:functions:deploy
+```
+
+## Frontend Deployment (Vercel)
+
+```bash
+npx vercel link
+npx vercel env add <KEY> production
+npx vercel --prod
+```
+
+Set all required production environment variables in Vercel before deploying.
 
 ## Scripts
 
 ```bash
-npm run dev       # Development server
-npm run build     # Build for production
-npm run start     # Production server
-npm run db:push   # Push schema to database
-npm run db:seed   # Seed sample data
+npm run dev                       # Next.js dev server
+npm run build                     # Production build
+npm run start                     # Run production build locally
+npm run lint                      # ESLint
+npm run test                      # Vitest unit tests
+npm run test:e2e                  # Playwright E2E tests
+npm run db:push                   # Push Prisma schema to Neon
+npm run db:seed                   # Seed Neon database
+npm run supabase:functions:serve  # Serve edge functions locally
+npm run supabase:functions:deploy # Deploy edge functions
 ```
 
 ## Testing
 
 ```bash
-npm run test          # Run unit tests with Vitest
-npm run test:watch    # Run unit tests in watch mode
-npm run test:coverage  # Run unit tests with coverage output
-npm run test:e2e      # Run Playwright end-to-end tests
+npm run test
+npm run test:e2e
 ```
 
-Before running the end-to-end suite for the first time, install the browser binary:
+For first-time Playwright setup:
 
 ```bash
 npx playwright install chromium
 ```
 
-## Testing Workflow
-
-Use `npm run test:watch` while developing so Vitest reruns relevant unit tests as you edit code. Before committing, run `npm run test` and `npm run test:e2e` to check the full unit and browser suites, and add `npm run test:coverage` when you want a coverage report.
-
 ## License
 
-MIT License - see [LICENSE](LICENSE) file
+MIT License - see [LICENSE](LICENSE)

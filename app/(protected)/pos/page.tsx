@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ReceiptPreview } from "@/components/receipt-preview";
+import { useAuth } from "@/components/auth-provider";
+import { apiGet, apiPost } from "@/lib/api-client";
 
 interface Product {
   id: number;
@@ -42,7 +43,7 @@ interface ReceiptData {
 }
 
 export default function POSPage() {
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
@@ -58,8 +59,7 @@ export default function POSPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products");
-      const data = await response.json();
+      const data = await apiGet<Product[]>("/api/products");
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -152,53 +152,43 @@ export default function POSPage() {
     setProcessing(true);
 
     try {
-      const response = await fetch("/api/sales", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cart.map((item) => ({
-            productId: item.id,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          discount,
-          paymentMethod,
-          totalAmount: calculateTotal(),
-        }),
+      const data = await apiPost<{ invoiceNumber: string }>("/api/sales", {
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        discount,
+        paymentMethod,
+        totalAmount: calculateTotal(),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Prepare receipt data
-        const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
-        const receiptInfo = {
-          invoiceNumber: data.invoiceNumber,
-          date: new Date().toLocaleString(),
-          cashier: session?.user?.name || "Cashier",
-          customer: undefined,
-          items: cart.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: Number(item.price),
-            subtotal: Number(item.subtotal),
-          })),
-          subtotal: subtotal,
-          discount: Number(discount),
-          total: calculateTotal(),
-          paymentMethod: paymentMethod,
-        };
-        
-        setReceiptData(receiptInfo);
-        setShowReceipt(true);
-        
-        // Clear cart
-        setCart([]);
-        setDiscount(0);
-        fetchProducts(); // Refresh stock
-      } else {
-        alert("Failed to process sale");
-      }
+      // Prepare receipt data
+      const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
+      const receiptInfo = {
+        invoiceNumber: data.invoiceNumber,
+        date: new Date().toLocaleString(),
+        cashier: user?.name || "Cashier",
+        customer: undefined,
+        items: cart.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: Number(item.price),
+          subtotal: Number(item.subtotal),
+        })),
+        subtotal: subtotal,
+        discount: Number(discount),
+        total: calculateTotal(),
+        paymentMethod: paymentMethod,
+      };
+
+      setReceiptData(receiptInfo);
+      setShowReceipt(true);
+
+      // Clear cart
+      setCart([]);
+      setDiscount(0);
+      fetchProducts(); // Refresh stock
     } catch (error) {
       console.error("Error processing sale:", error);
       alert("An error occurred");

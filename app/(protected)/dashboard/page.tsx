@@ -1,59 +1,77 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { apiGet } from "@/lib/api-client";
 
-async function getDashboardStats() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+type DashboardStats = {
+  todaySalesAmount: number;
+  todaySalesCount: number;
+  totalProducts: number;
+  totalCustomers: number;
+  lowStockProducts: number;
+};
 
-  const [todaySales, totalProducts, totalCustomers, lowStockProducts] = await Promise.all([
-    prisma.sale.aggregate({
-      where: {
-        createdAt: {
-          gte: today,
-        },
-      },
-      _sum: {
-        totalAmount: true,
-      },
-      _count: true,
-    }),
-    prisma.product.count(),
-    prisma.customer.count(),
-    prisma.product.count({
-      where: {
-        stock: {
-          lt: 10,
-        },
-      },
-    }),
-  ]);
+type SaleRecord = {
+  createdAt: string;
+  totalAmount: number;
+};
 
-  return {
-    todaySalesAmount: todaySales._sum.totalAmount || 0,
-    todaySalesCount: todaySales._count,
-    totalProducts,
-    totalCustomers,
-    lowStockProducts,
-  };
-}
+type ProductRecord = {
+  stock: number;
+};
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    todaySalesAmount: 0,
+    todaySalesCount: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    lowStockProducts: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  if (!session) {
-    redirect("/login");
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [sales, products, customers] = await Promise.all([
+          apiGet<SaleRecord[]>("/api/sales"),
+          apiGet<ProductRecord[]>("/api/products"),
+          apiGet<{ id: number }[]>("/api/customers"),
+        ]);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todaySales = sales.filter((sale) => new Date(sale.createdAt) >= today);
+        const todaySalesAmount = todaySales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0);
+
+        setStats({
+          todaySalesAmount,
+          todaySalesCount: todaySales.length,
+          totalProducts: products.length,
+          totalCustomers: customers.length,
+          lowStockProducts: products.filter((product) => Number(product.stock) < 10).length,
+        });
+      } catch (error) {
+        console.error("Error loading dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadStats();
+  }, []);
+
+  if (loading) {
+    return <div className="space-y-6">Loading dashboard...</div>;
   }
-
-  const stats = await getDashboardStats();
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {session.user.name}!</p>
+        <p className="text-gray-600">Welcome back.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

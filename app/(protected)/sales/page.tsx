@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReceiptPreview } from "@/components/receipt-preview";
+import { apiGet } from "@/lib/api-client";
 
 interface Sale {
   id: number;
@@ -62,8 +63,7 @@ export default function SalesPage() {
 
   const fetchSales = async () => {
     try {
-      const response = await fetch("/api/sales");
-      const data = await response.json();
+      const data = await apiGet<Sale[]>("/api/sales");
       setSales(data);
     } catch (error) {
       console.error("Error fetching sales:", error);

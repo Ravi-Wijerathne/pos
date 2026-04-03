@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,14 +21,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("credentials", {
+      const supabase = getBrowserSupabaseClient();
+      if (!supabase) {
+        setError("Missing Supabase configuration");
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid email or password");
+      if (error) {
+        setError(error.message);
       } else {
         router.push("/dashboard");
         router.refresh();

@@ -22,6 +22,25 @@ interface CartItem extends Product {
   subtotal: number;
 }
 
+interface ReceiptItem {
+  name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+interface ReceiptData {
+  invoiceNumber: string;
+  date: string;
+  cashier: string;
+  customer?: string;
+  items: ReceiptItem[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  paymentMethod: "CASH" | "CARD" | "MOBILE";
+}
+
 export default function POSPage() {
   const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
@@ -30,7 +49,7 @@ export default function POSPage() {
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD" | "MOBILE">("CASH");
   const [processing, setProcessing] = useState(false);
-  const [receiptData, setReceiptData] = useState<any>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
@@ -296,7 +315,11 @@ export default function POSPage() {
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as any)}
+                  onChange={(e) =>
+                    setPaymentMethod(
+                      e.target.value as "CASH" | "CARD" | "MOBILE"
+                    )
+                  }
                 >
                   <option value="CASH">Cash</option>
                   <option value="CARD">Card</option>

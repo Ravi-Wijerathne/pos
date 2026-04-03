@@ -4,6 +4,20 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+type SaleItemInput = {
+  productId: number;
+  quantity: number;
+  price: number;
+};
+
+type CreateSaleBody = {
+  items: SaleItemInput[];
+  discount?: number;
+  paymentMethod: "CASH" | "CARD" | "MOBILE";
+  totalAmount: number;
+  customerId?: number | null;
+};
+
 // GET all sales
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -16,7 +30,7 @@ export async function GET(request: NextRequest) {
   const endDate = searchParams.get("endDate");
 
   try {
-    const where: any = {};
+    const where: Prisma.SaleWhereInput = {};
 
     if (startDate && endDate) {
       where.createdAt = {
@@ -60,7 +74,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as CreateSaleBody;
     const { items, discount, paymentMethod, totalAmount, customerId } = body;
 
     // Generate invoice number
@@ -82,7 +96,7 @@ export async function POST(request: NextRequest) {
           paymentMethod,
           userId: parseInt(session.user.id),
           saleItems: {
-            create: items.map((item: any) => ({
+            create: items.map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
               price: item.price,
@@ -133,10 +147,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(sale, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating sale:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create sale" },
+      {
+        error: error instanceof Error ? error.message : "Failed to create sale",
+      },
       { status: 500 }
     );
   }

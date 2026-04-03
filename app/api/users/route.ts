@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 
+function hasCode(error: unknown): error is { code: string } {
+  return typeof error === "object" && error !== null && "code" in error;
+}
+
 // GET all users
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -62,8 +66,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(user, { status: 201 });
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error: unknown) {
+    if (hasCode(error) && error.code === "P2002") {
       return NextResponse.json(
         { error: "Email already exists" },
         { status: 400 }

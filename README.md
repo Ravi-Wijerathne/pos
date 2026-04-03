@@ -1,5 +1,7 @@
 # POS System
 
+[![CI](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml/badge.svg)](https://github.com/Ravi-Wijerathne/pos/actions/workflows/ci.yml)
+
 Modern Point of Sale system built with Next.js, TypeScript, Prisma, and MySQL.
 
 ## Features
@@ -91,6 +93,25 @@ npm run start     # Production server
 npm run db:push   # Push schema to database
 npm run db:seed   # Seed sample data
 ```
+
+## Testing
+
+```bash
+npm run test          # Run unit tests with Vitest
+npm run test:watch    # Run unit tests in watch mode
+npm run test:coverage  # Run unit tests with coverage output
+npm run test:e2e      # Run Playwright end-to-end tests
+```
+
+Before running the end-to-end suite for the first time, install the browser binary:
+
+```bash
+npx playwright install chromium
+```
+
+## Testing Workflow
+
+Use `npm run test:watch` while developing so Vitest reruns relevant unit tests as you edit code. Before committing, run `npm run test` and `npm run test:e2e` to check the full unit and browser suites, and add `npm run test:coverage` when you want a coverage report.
 
 ## License
 

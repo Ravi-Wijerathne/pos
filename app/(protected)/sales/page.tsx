@@ -30,11 +30,30 @@ interface Sale {
   }>;
 }
 
+interface ReceiptItem {
+  name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+interface ReceiptData {
+  invoiceNumber: string;
+  date: string;
+  cashier: string;
+  customer?: string;
+  items: ReceiptItem[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  paymentMethod: string;
+}
+
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSale, setExpandedSale] = useState<number | null>(null);
-  const [receiptData, setReceiptData] = useState<any>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
